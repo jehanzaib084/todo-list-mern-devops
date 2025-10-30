@@ -1,5 +1,5 @@
 // Dynamic base URL from environment variable (Vite uses import.meta.env)
-export const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
+export const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // auth urls
 export const REGISTER = `${BASE_URL}/api/user/`; // register user api endpoint

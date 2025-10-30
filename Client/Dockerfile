@@ -16,11 +16,8 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Install serve to serve the built app
-RUN npm install -g serve
-
 # Expose port
 EXPOSE 3000
 
-# Serve the built application
-CMD ["serve", "-s", "dist", "-l", "3000"]
+# Serve the built application using vite preview
+CMD ["npx", "vite", "preview", "--port", "3000", "--host", "0.0.0.0"]

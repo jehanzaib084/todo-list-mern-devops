@@ -223,8 +223,8 @@ kubectl create deployment jehanzaib-todo-backend --image=jehanzaib08/jehanzaib-t
 # Set environment variables for backend
 kubectl set env deployment/jehanzaib-todo-backend JWT_KEY=jwtsecret MONGO_URL=mongodb+srv://muhammadjehanzaib2021:Jehanzaib0842021@cluster0.fu6zzfl.mongodb.net/?appName=Cluster0
 
-# Expose backend as internal service (ClusterIP)
-kubectl expose deployment jehanzaib-todo-backend --port=4000 --target-port=4000 --type=ClusterIP
+# Expose backend as public service (LoadBalancer) for external access
+kubectl expose deployment jehanzaib-todo-backend --port=80 --target-port=4000 --type=LoadBalancer
 ```
 
 #### Deploy Frontend:
@@ -233,7 +233,7 @@ kubectl expose deployment jehanzaib-todo-backend --port=4000 --target-port=4000 
 kubectl create deployment jehanzaib-todo-frontend --image=jehanzaib08/jehanzaib-todo-app-frontend:latest
 
 # Set environment variable for backend connection
-kubectl set env deployment/jehanzaib-todo-frontend VITE_API_BASE_URL=http://jehanzaib-todo-backend:4000
+kubectl set env deployment/jehanzaib-todo-frontend VITE_API_BASE_URL=http://4.145.123.244
 
 # Expose frontend as public service (LoadBalancer)
 kubectl expose deployment jehanzaib-todo-frontend --port=80 --target-port=3000 --type=LoadBalancer
@@ -284,17 +284,18 @@ kubectl rollout status deployment/jehanzaib-todo-frontend
 kubectl get services jehanzaib-todo-frontend
 ```
 
-### Step 5: Get Public IP and Test (3 Marks)
+# Get public IP and Test (3 Marks)
 ```bash
 # Check all services
 kubectl get services
 
-# Get the external IP for frontend (wait until EXTERNAL-IP shows an IP)
-kubectl get services jehanzaib-todo-frontend --watch
+# Get the external IP for both frontend and backend (wait until EXTERNAL-IP shows an IP)
+kubectl get services --watch
 
 # Test your application using the EXTERNAL-IP
-# Frontend will be accessible at: http://<EXTERNAL-IP>
-# Backend is internal only, accessed by frontend
+# Frontend will be accessible at: http://<FRONTEND-EXTERNAL-IP>
+# Backend will be accessible at: http://<BACKEND-EXTERNAL-IP>:4000
+# Test health endpoint: curl http://<BACKEND-EXTERNAL-IP>:4000/health
 ```
 
 ### 🔄 **Rebuild & Redeploy Steps (If Frontend Can't Connect to Backend):**
@@ -323,7 +324,7 @@ docker push jehanzaib08/jehanzaib-todo-app-frontend:latest
 # Deploy backend
 kubectl create deployment jehanzaib-todo-backend --image=jehanzaib08/jehanzaib-todo-app-backend:latest
 kubectl set env deployment/jehanzaib-todo-backend JWT_KEY=jwtsecret MONGO_URL=mongodb+srv://muhammadjehanzaib2021:Jehanzaib0842021@cluster0.fu6zzfl.mongodb.net/?appName=Cluster0
-kubectl expose deployment jehanzaib-todo-backend --port=4000 --target-port=4000 --type=ClusterIP
+kubectl expose deployment jehanzaib-todo-backend --port=4000 --target-port=4000 --type=LoadBalancer
 
 # Deploy frontend with backend connection
 kubectl create deployment jehanzaib-todo-frontend --image=jehanzaib08/jehanzaib-todo-app-frontend:latest
@@ -340,9 +341,10 @@ In Kubernetes, services communicate using **internal service names**, not extern
 
 - Backend service name: `jehanzaib-todo-backend`
 - Frontend connects to: `http://jehanzaib-todo-backend:4000`
-- External users access frontend via LoadBalancer IP
+- External users access frontend via LoadBalancer IP: `http://<FRONTEND-EXTERNAL-IP>`
+- Backend is also accessible externally via: `http://<BACKEND-EXTERNAL-IP>:4000`
 
-This is how microservices communicate in Kubernetes!
+This is how microservices communicate in Kubernetes while allowing external access!
 
 ## 3. GitHub Repository & Commands Usage (5 Marks)
 
@@ -465,6 +467,9 @@ kubectl get pods
 # View pod logs
 kubectl logs deployment/jehanzaib-todo-backend
 kubectl logs deployment/jehanzaib-todo-frontend
+
+# Check health endpoint
+curl http://<BACKEND-EXTERNAL-IP>:4000/health
 
 # Restart deployments
 kubectl rollout restart deployment jehanzaib-todo-backend

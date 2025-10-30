@@ -16,7 +16,10 @@ DbCon();
 // regular middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors()); // allow cross origin requests from client side (browser) to server side
+app.use(cors()); // allow cross origin requests from any origin
+
+// health endpoint
+app.get('/health', (req, res) => res.status(200).json({ status: 'OK' }));
 
 // routes
 app.use("/api/user/", UserRoutes);
