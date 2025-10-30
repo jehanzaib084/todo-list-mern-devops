@@ -331,127 +331,6 @@ kubectl create deployment jehanzaib-todo-frontend --image=jehanzaib08/jehanzaib-
 kubectl set env deployment/jehanzaib-todo-frontend VITE_API_BASE_URL=http://jehanzaib-todo-backend:4000
 kubectl expose deployment jehanzaib-todo-frontend --port=80 --target-port=3000 --type=LoadBalancer
 
-# Get public IP
-kubectl get services jehanzaib-todo-frontend --watch
-```
-
-### Why Frontend Needs Environment Variable?
-
-In Kubernetes, services communicate using **internal service names**, not external IPs:
-
-- Backend service name: `jehanzaib-todo-backend`
-- Frontend connects to: `http://jehanzaib-todo-backend:4000`
-- External users access frontend via LoadBalancer IP: `http://<FRONTEND-EXTERNAL-IP>`
-- Backend is also accessible externally via: `http://<BACKEND-EXTERNAL-IP>:4000`
-
-This is how microservices communicate in Kubernetes while allowing external access!
-
-## 3. GitHub Repository & Commands Usage (5 Marks)
-
-### Step 1: Create GitHub Repository (1 Mark)
-```bash
-# Initialize git repository (if not already done)
-git init
-
-# Add all files
-git add .
-
-# Set git user configuration
-git config user.name "Your Name"
-git config user.email "your.email@example.com"
-
-# Initial commit
-git commit -m "Initial commit: MERN Todo List App"
-
-# Create GitHub repository via web interface or GitHub CLI
-# GitHub CLI method:
-gh repo create todo-list-mern --public --source=. --remote=origin --push
-```
-
-### Step 2: Add Project Files Including Dockerfile (2 Marks)
-```bash
-# Add any remaining files
-git add .
-
-# Commit changes
-git commit -m "Add Dockerfile and deployment configurations"
-```
-
-### Step 3: Use Git Commands Properly (2 Marks)
-```bash
-# Check status
-git status
-
-# Add specific files
-git add README.md Dockerfile deployment.yaml
-
-# Commit with descriptive message
-git commit -m "Add comprehensive DevOps deployment guide and configurations"
-
-# Push to GitHub
-git push -u origin main
-
-# Pull latest changes
-git pull origin main
-
-# Create and switch to new branch for features
-git checkout -b feature/docker-improvements
-
-# Merge branches
-git checkout main
-git merge feature/docker-improvements
-```
-
----
-
-## Required Deliverables
-
-### GitHub Repository Link
-- **Repository URL**: [Your GitHub Repository Link - Create and push your code]
-
-### Docker Hub Image Links
-- **Backend Image**: https://hub.docker.com/repository/docker/jehanzaib08/jehanzaib-todo-app-backend/general
-- **Frontend Image**: https://hub.docker.com/repository/docker/jehanzaib08/jehanzaib-todo-app-frontend/general
-
-### Azure App Public URL
-- **Application URL**: http://20.6.45.39 (Your LoadBalancer External IP)
-
-### Screenshots Required
-1. **Docker Build & Run**: Screenshot of successful Docker build and container running
-2. **Docker Hub Push**: Screenshot of image pushed to Docker Hub
-3. **AKS Cluster Creation**: Screenshot of Azure portal showing AKS cluster
-4. **AKS Deployment**: Screenshot of kubectl commands and deployment status
-5. **Public IP Access**: Screenshot of application accessible via public URL
-
----
-
-## Environment Variables Setup
-
-For production deployment, ensure these environment variables are set:
-
-### Backend (.env)
-```
-JWT_KEY=your_secure_jwt_secret_key
-MONGO_URL=mongodb+srv://username:password@cluster.mongodb.net/todoapp
-PORT=4000
-```
-
-### Frontend (Client/src/constant/api.jsx)
-The frontend uses environment variable for backend connection:
-```javascript
-export const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
-```
-In Kubernetes, this becomes: `http://jehanzaib-todo-backend:4000`
-
----
-
-## Troubleshooting
-
-### Common Issues
-1. **CORS Errors**: Ensure CORS middleware is enabled in Express server
-2. **MongoDB Connection**: Verify MongoDB Atlas IP whitelist includes Azure IPs
-3. **AKS Access**: Ensure proper RBAC permissions for AKS cluster
-4. **Docker Build Failures**: Check all dependencies are properly installed
 
 ### Useful Commands
 ```bash
@@ -500,7 +379,53 @@ To-do-list-MERN-/
 └── .gitignore
 ```
 
+## 🔄 Update Deployment with New Image
+
+If you've made changes to your code and want to update the deployed application with the latest image while keeping the same public IP:
+
+### Step 1: Rebuild and Push Updated Images
+
+#### For Frontend:
+```bash
+cd Client
+docker build -t jehanzaib-todo-app-frontend:latest .
+docker tag jehanzaib-todo-app-frontend:latest jehanzaib08/jehanzaib-todo-app-frontend:latest
+docker push jehanzaib08/jehanzaib-todo-app-frontend:latest
+```
+
+#### For Backend:
+```bash
+cd ../Server
+docker build -t jehanzaib-todo-app-backend:latest .
+docker tag jehanzaib-todo-app-backend:latest jehanzaib08/jehanzaib-todo-app-backend:latest
+docker push jehanzaib08/jehanzaib-todo-app-backend:latest
+```
+
+### Step 2: Update Kubernetes Deployment
+```bash
+# Update frontend image
+kubectl set image deployment/jehanzaib-todo-frontend jehanzaib-todo-app-frontend=jehanzaib08/jehanzaib-todo-app-frontend:latest
+
+# Update backend image
+kubectl set image deployment/jehanzaib-todo-backend jehanzaib-todo-app-backend=jehanzaib08/jehanzaib-todo-app-backend:latest
+
+# Restart deployments to apply changes
+kubectl rollout restart deployment/jehanzaib-todo-frontend
+kubectl rollout restart deployment/jehanzaib-todo-backend
+
+# Check rollout status
+kubectl rollout status deployment/jehanzaib-todo-frontend
+kubectl rollout status deployment/jehanzaib-todo-backend
+
+# Verify the service IPs remain the same
+kubectl get services
+```
+
+Your application will be updated with the new image while maintaining the same public IP address.
+
+---
+
 **Course**: DevOps for Cloud Computing (CSC418)
 **Semester**: 7th, Fall 2025
 **Student**: Jehanzaib
-**Registration No**: [Your Reg No]
+**Registration No**: FA22-BSE-084
