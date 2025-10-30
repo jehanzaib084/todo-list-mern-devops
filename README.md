@@ -3,140 +3,7 @@
 ## Project Overview
 This is a full-stack MERN (MongoDB, Express.js, React, Node.js) Todo List application with complete DevOps pipeline implementation for cloud deployment.
 
-## Local Development Setup
-
-### Prerequisites
-- Node.js (v16 or higher)
-- MongoDB Atlas account (for database)
-- Git
-
-### Frontend Setup (React + Vite)
-```bash
-cd Client
-npm install
-npm run dev
-```
-The frontend will be available at `http://localhost:5173`
-
-### Backend Setup (Node.js + Express)
-```bash
-cd Server
-npm install
-```
-
-Create a `.env` file in the Server directory:
-```env
-JWT_KEY=your_jwt_secret_key
-MONGO_URL=your_mongodb_atlas_connection_string
-PORT=4000
-```
-
-Start the backend server:
-```bash
-npm start
-# or for development with auto-reload
-npx nodemon server.js
-```
-### Alternative: Using Docker Compose for Local Development
-For easier local development with all services:
-
-```bash
-# Build and run all services
-docker-compose up --build
-
-# Run in background
-docker-compose up -d --build
-
-# Stop services
-docker-compose down
-
-# View logs
-docker-compose logs -f
-```
-
-This will start:
-- MongoDB on port 27017
-- Backend API on port 4000
-- Frontend on port 5173
-
-## 1. Dockerization & Local Deployment (10 Marks)
-
-### Step 1: Application Setup and Local Testing (2 Marks)
-```bash
-# Ensure both frontend and backend are running locally
-# Frontend: http://localhost:5173
-# Backend: http://localhost:4000
-```
-
-### Step 2: Create Separate Dockerfiles (3 Marks)
-
-#### Backend Dockerfile (Server/Dockerfile):
-```dockerfile
-# Use Node.js official image
-FROM node:18-alpine
-
-# Set working directory
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
-RUN npm install
-
-# Copy source code
-COPY . .
-
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
-
-# Change ownership of app directory
-RUN chown -R nextjs:nodejs /app
-USER nextjs
-
-# Expose port
-EXPOSE 4000
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:4000/health || exit 1
-
-# Start the application
-CMD ["npm", "start"]
-```
-
-#### Frontend Dockerfile (Client/Dockerfile):
-```dockerfile
-# Simple React build and serve
-FROM node:18-alpine
-
-# Set working directory
-WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
-RUN npm install
-
-# Copy source code
-COPY . .
-
-# Build the application
-RUN npm run build
-
-# Install serve to serve the built app
-RUN npm install -g serve
-
-# Expose port
-EXPOSE 3000
-
-# Serve the built application
-CMD ["serve", "-s", "dist", "-l", "3000"]
-```
-
-### Step 3: Build Docker Images (3 Marks)
+### Build Docker Images (3 Marks)
 ```bash
 # Build backend image
 cd Server
@@ -157,7 +24,7 @@ curl http://localhost:4000
 curl http://localhost:3000
 ```
 
-### Step 4: Push to Docker Hub (2 Marks)
+### Push to Docker Hub (2 Marks)
 ```bash
 # Login to Docker Hub
 docker login
@@ -201,12 +68,7 @@ Since your images are already on Docker Hub, you can skip the ACR steps and depl
 ### Step 3: Create AKS Cluster (3 Marks)
 ```bash
 # Create AKS cluster
-az aks create \
-  --resource-group todo-app-rg \
-  --name todo-aks-cluster \
-  --node-count 1 \
-  --enable-addons monitoring \
-  --generate-ssh-keys
+az aks create --resource-group todo-app-rg --name todo-aks-cluster --node-count 1 --enable-addons monitoring --generate-ssh-keys
 
 # Get AKS credentials
 az aks get-credentials --resource-group todo-app-rg --name todo-aks-cluster
@@ -251,52 +113,14 @@ kubectl get services
 kubectl get services jehanzaib-todo-frontend --watch
 ```
 
-### Why We Use kubectl create deployment & expose?
-
-The `kubectl create deployment` and `kubectl expose` commands tell **Kubernetes** how to run your app:
-
-1. **`kubectl create deployment`**: Creates pods running your Docker containers
-2. **`kubectl set env`**: Sets environment variables (database URL, secrets)
-3. **`kubectl expose`**: Creates a service to make your app accessible
-   - `ClusterIP`: Internal access (for backend)
-   - `LoadBalancer`: Public access with external IP (for frontend)
-
-Without these commands, Kubernetes doesn't know how to deploy and access your application!
-
-### 🔄 **Update Existing Deployment (Instead of Delete & Recreate):**
-
-If you want to update the existing deployment instead of deleting it:
-
-```bash
-# Update the frontend image to the latest version (use the correct container name)
-kubectl set image deployment/jehanzaib-todo-frontend jehanzaib-todo-app-frontend=jehanzaib08/jehanzaib-todo-app-frontend:latest
-
-# Set the correct environment variable for Vite (remove old one first if needed)
-kubectl set env deployment/jehanzaib-todo-frontend REACT_APP_API_BASE_URL- VITE_API_BASE_URL=http://jehanzaib-todo-backend:4000
-
-# Restart the deployment to apply changes
-kubectl rollout restart deployment/jehanzaib-todo-frontend
-
-# Check rollout status
-kubectl rollout status deployment/jehanzaib-todo-frontend
-
-# Get the service IP (should remain the same)
-kubectl get services jehanzaib-todo-frontend
-```
-
 # Get public IP and Test (3 Marks)
 ```bash
 # Check all services
 kubectl get services
 
-# Get the external IP for both frontend and backend (wait until EXTERNAL-IP shows an IP)
-kubectl get services --watch
-
-# Test your application using the EXTERNAL-IP
-# Frontend will be accessible at: http://<FRONTEND-EXTERNAL-IP>
-# Backend will be accessible at: http://<BACKEND-EXTERNAL-IP>:4000
-# Test health endpoint: curl http://<BACKEND-EXTERNAL-IP>:4000/health
 ```
+
+
 
 ### 🔄 **Rebuild & Redeploy Steps (If Frontend Can't Connect to Backend):**
 
@@ -374,7 +198,6 @@ To-do-list-MERN-/
 ├── Server/                 # Node.js Backend
 │   ├── Dockerfile         # Backend Docker configuration
 │   └── ...
-├── docker-compose.yml         # Local development setup
 ├── README.md                  # This file
 └── .gitignore
 ```
