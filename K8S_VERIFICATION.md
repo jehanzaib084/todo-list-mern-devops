@@ -207,7 +207,7 @@ kubectl exec -n todo-app deployment/frontend -- nslookup backend
 
 ## 📝 Notes
 
-- All deployments use **Docker Hub images** (`jehanzaib08/todo-*`)
+- All deployments use **Docker Hub images** (`hamayal497/todo-*`)
 - Frontend uses **LoadBalancer** for public access
 - Backend and MongoDB use **ClusterIP** for internal communication
 - All services are in the **`todo-app`** namespace

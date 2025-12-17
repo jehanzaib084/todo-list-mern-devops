@@ -55,9 +55,9 @@ Add these secrets:
 ## 🐳 Docker Images
 
 Images will be pushed to:
-- `jehanzaib08/todo-frontend:latest` and `:COMMIT_SHA`
-- `jehanzaib08/todo-backend:latest` and `:COMMIT_SHA`
-- `jehanzaib08/todo-db:latest` and `:COMMIT_SHA`
+- `hamayal497/todo-frontend:latest` and `:COMMIT_SHA`
+- `hamayal497/todo-backend:latest` and `:COMMIT_SHA`
+- `hamayal497/todo-db:latest` and `:COMMIT_SHA`
 
 ## ☸️ Kubernetes Deployment
 
