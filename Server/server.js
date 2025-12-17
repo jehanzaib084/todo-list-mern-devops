@@ -18,8 +18,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors()); // allow cross origin requests from any origin
 
-// health endpoint
-app.get('/health', (req, res) => res.status(200).json({ status: 'OK' }));
+// health endpoint for Kubernetes
+app.get('/api/health', (req, res) => res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() }));
 
 // routes
 app.use("/api/user/", UserRoutes);

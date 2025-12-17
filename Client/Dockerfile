@@ -1,23 +1,50 @@
-# Simple React build and serve
-FROM node:18-alpine
+# Frontend Dockerfile - React/Vite
+FROM node:20-alpine AS builder
 
-# Set working directory
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm install --legacy-peer-deps
 
-# Copy source code
+# Copy application source
 COPY . .
 
-# Build the application
+# Set API URL to empty string so frontend uses relative URLs (nginx will proxy /api to backend)
+ENV VITE_API_BASE_URL=
+
+# Build the React application
 RUN npm run build
 
-# Expose port
-EXPOSE 3000
+# Production stage
+FROM nginx:alpine
 
-# Serve the built application using vite preview
-CMD ["npx", "vite", "preview", "--port", "3000", "--host", "0.0.0.0"]
+# Copy built files from builder
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Configure nginx for API proxy and SPA routing
+RUN echo 'server { \
+    listen 80; \
+    server_name localhost; \
+    root /usr/share/nginx/html; \
+    index index.html; \
+    location / { \
+        try_files $uri $uri/ /index.html; \
+    } \
+    location /api { \
+        proxy_pass http://backend:4000; \
+        proxy_http_version 1.1; \
+        proxy_set_header Upgrade $http_upgrade; \
+        proxy_set_header Connection "upgrade"; \
+        proxy_set_header Host $host; \
+        proxy_set_header X-Real-IP $remote_addr; \
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; \
+        proxy_set_header X-Forwarded-Proto $scheme; \
+    } \
+}' > /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

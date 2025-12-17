@@ -1,0 +1,68 @@
+version: "3.9"
+
+services:
+  # MongoDB Database
+  db:
+    build:
+      context: ./db
+      dockerfile: Dockerfile
+    container_name: todo-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+      - ./db/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    networks:
+      - todo-network
+    environment:
+      MONGO_INITDB_DATABASE: todoapp
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # Backend API (Node.js/Express)
+  backend:
+    build:
+      context: ./Server
+      dockerfile: Dockerfile
+    container_name: todo-backend
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    env_file:
+      - ./Server/.env
+    environment:
+      - MONGO_URL=mongodb://db:27017/todoapp
+      - PORT=4000
+      - NODE_ENV=production
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - todo-network
+
+  # Frontend (React/Vite)
+  frontend:
+    build:
+      context: ./Client
+      dockerfile: Dockerfile
+    container_name: todo-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - todo-network
+
+networks:
+  todo-network:
+    driver: bridge
+
+volumes:
+  mongodb-data:
+    driver: local
