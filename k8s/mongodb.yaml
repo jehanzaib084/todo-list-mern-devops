@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
       - name: mongodb
-        image: jehanzaib08/todo-db:latest
+        image: hamayal497/todo-db:latest
         ports:
         - containerPort: 27017
         env:
