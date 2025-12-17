@@ -88,7 +88,7 @@ After pushing to GitHub, you'll see:
 - Ensure repository exists or allows auto-creation
 
 **Kubernetes deploy fails?**
-- Verify KUBECONFIG secret is base64 encoded correctly
+- Verify KUBECONFIG secret contains the full kubeconfig file content (plain text)
 - Check kubeconfig file is valid
 - Ensure cluster is accessible
 
