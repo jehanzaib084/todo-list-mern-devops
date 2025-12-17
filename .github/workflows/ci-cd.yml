@@ -7,7 +7,7 @@ on:
     branches: [ main, master ]
 
 env:
-  DOCKERHUB_USERNAME: jehanzaib08
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   IMAGE_TAG: ${{ github.sha }}
 
 jobs:
